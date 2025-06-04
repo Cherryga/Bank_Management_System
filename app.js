@@ -180,6 +180,26 @@ app.get('/customer/:username',async(req,res)=>{
     }
 });
 
+const cron = require('node-cron');
+
+cron.schedule('* * * * *', async () => {
+    console.log('Running EMI auto-deduction job at midnight...');
+
+    try {
+        // Deduct EMI from all accounts that have an active loan
+        const result = await pool.query(`
+            UPDATE accounts
+            SET current_balance = current_balance - emi_amount
+            WHERE emi_amount IS NOT NULL AND emi_amount > 0
+        `);
+
+        console.log('EMI auto-deduction completed.');
+    } catch (err) {
+        console.error('Error in EMI deduction job:', err.message);
+    }
+});
+
+
 
 
 
